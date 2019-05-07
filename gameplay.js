@@ -13,9 +13,10 @@ main.preload = function(){
 	this.load.audio('jumpSound','jump.wav');
 	this.load.audio('laser','laser.wav');
 	this.load.audio('rocket_sound','rocket_sound.wav');
-	this.load.image('rocket_bullet','bullet3.png');
+	this.load.image('rocket_bullet','bullet3s.png');
 	this.load.image('dragon_shoot','dragon_shoot.png');
 	this.load.image('playagain','playagain.png');
+	this.load.image('menu','menu.png');
 }
 
 var score;
@@ -138,6 +139,14 @@ main.update = function(){
 		function(){
 			// dragon.disableBody(true, true);
 			gameManager.scene.resume('Main');
+			gameManager.scene.restart();
+			});
+		var btnMenu = this.add.image(config.width/2,config.height-100,'menu');
+		btnMenu.setInteractive();
+		btnMenu.on('pointerup',
+		function(){
+			// dragon.disableBody(true, true);
+			gameManager.scene.resume('Menu');
 			gameManager.scene.restart();
 			});
 	}
