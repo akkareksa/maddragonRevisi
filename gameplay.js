@@ -12,11 +12,14 @@ main.preload = function(){
 	this.load.image('ufo', 'ufo.png');
 	this.load.audio('jumpSound','jump.wav');
 	this.load.audio('laser','laser.wav');
+	this.load.audio('hup','hup.wav');
 	this.load.audio('rocket_sound','rocket_sound.wav');
 	this.load.image('rocket_bullet','bullet3s.png');
 	this.load.image('dragon_shoot','dragon_shoot.png');
 	this.load.image('playagain','playagain.png');
 	this.load.image('menu','menu.png');
+	this.load.image('awan1','awan1.png');
+	this.load.image('awan2','awan2.png');
 }
 
 var score;
@@ -37,7 +40,9 @@ var velocity;
 var enemies; //diubah, masukkan ke di group enemies
 var rocket_sound;
 var laser;
-// var lifeX;
+var health;
+var hup;
+var obstacles;
 
 main.create = function(){
 	window.focus();
@@ -55,11 +60,12 @@ main.create = function(){
 	jumpSound=this.sound.add('jumpSound');
 	rocket_sound = this.sound.add('rocket_sound');
 	laser = this.sound.add('laser');
+	hup = this.sound.add('hup');
 	this.tembakan = this.add.group();
 	this.enemies = this.add.group(); 
 	this.tembakanMusuh=this.add.group();
-	// this.enemy = enemies.getChildren();
-	// enemies.add(minion);
+	this.health = this.add.group();
+	this.obstacles = this.add.group();
 	this.input.on('pointerup', function () {
 		dragonShoot();
 	}, this);
@@ -125,6 +131,7 @@ main.create = function(){
 	this.physics.add.overlap(this.tembakan, this.enemies, destoryEnemy, null, this);
 	this.physics.add.overlap(this.tembakanMusuh, dragon, damageDragon);
 	this.physics.add.overlap(this.enemies, dragon, damageDragon);
+	this.physics.add.overlap(this.health, dragon, increaseHealth);
 }
 
 main.update = function(){
@@ -145,9 +152,7 @@ main.update = function(){
 		btnMenu.setInteractive();
 		btnMenu.on('pointerup',
 		function(){
-			// dragon.disableBody(true, true);
-			gameManager.scene.resume('Menu');
-			gameManager.scene.restart();
+			gameManager.scene.switch('Menu');
 			});
 	}
 	gameManager.enemies.children.iterate(child => {
@@ -165,6 +170,20 @@ main.update = function(){
 		}
 	});
 	gameManager.tembakanMusuh.children.iterate(child => {
+		if (child && child.x <=0) {
+			child.status=0;
+			child.destroy(child, true);
+			// console.log('tembakan musuh hancur');
+		}
+	});
+	gameManager.health.children.iterate(child => {
+		if (child && child.x <=0) {
+			child.status=0;
+			child.destroy(child, true);
+			// console.log('tembakan musuh hancur');
+		}
+	});
+	gameManager.obstacles.children.iterate(child => {
 		if (child && child.x <=0) {
 			child.status=0;
 			child.destroy(child, true);
@@ -243,10 +262,31 @@ function generateEnemy(){
 		}
 		else{
 			generateHomming();
+			if(random>0.95){
+				generateHealth();
+			}
 		}
-
 	}
+	// if(gameManager.obstacles.getLength()<2){
+	// 	generateObstacle();
+	// }
 
+}
+
+function generateObstacle(){
+	var random = Math.random();
+	var y = 50+Math.floor(Math.random()*(height-100));
+	var awan;
+	if(random<0.5){
+		awan = gameManager.physics.add.image(width-100,y,'awan1').setScale(0.25);
+	}
+	else{
+		awan = gameManager.physics.add.image(width-100,y,'awan2').setScale(0.25);
+	}
+	awan.setVelocity(-25,0);
+	gameManager.obstacles.add(awan);
+
+	
 }
 
 function generateMinion(){
@@ -266,6 +306,13 @@ function generateMinion(){
 		callbackScope: gameManager,
 		loop: true
 	});
+}
+
+function generateHealth(){
+	var y = 300+Math.floor(Math.random()*100);
+	var apple = gameManager.physics.add.image(width-111,y,'apple').setScale(0.1);
+	apple.setVelocity(-150,0);
+	gameManager.health.add(apple);
 }
 
 function generateHomming(){
@@ -368,6 +415,14 @@ function damageDragon(enemies,dragon){
 	if(gameManager.life<=0){
 		gameOver=true;
 	}
+}
+
+function increaseHealth(health,dragon){
+	hup.play();
+	if(gameManager.life<3){
+		gameManager.life++;
+	}
+	health.destroy();
 }
 
 function destoryEnemy(tembakan, enemies)
